@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Register</title>
+</head>
+<body>
+<h1>Register</h1>
+<form action="/register" method="POST">
+    <!-- Username Field -->
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required placeholder="Enter your username">
+    <br><br>
+
+    <!-- Password Field -->
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required placeholder="Enter your password">
+    <br><br>
+
+    <!-- Email Field -->
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required placeholder="Enter your email">
+    <br><br>
+
+    <!-- First Name Field -->
+    <label for="firstName">First Name:</label>
+    <input type="text" id="firstName" name="firstName" required placeholder="Enter your first name">
+    <br><br>
+
+    <!-- Last Name Field -->
+    <label for="lastName">Last Name:</label>
+    <input type="text" id="lastName" name="lastName" required placeholder="Enter your last name">
+    <br><br>
+
+    <!-- Phone Number Field -->
+    <label for="phoneNumber">Phone Number:</label>
+    <input type="tel" id="phoneNumber" name="phoneNumber" required placeholder="Enter your phone number" pattern="^\+?\d{1,4}[\s\-]?\(?\d*\)?[\s\-]?\d+([\s\-]?\d+)*$" title="Enter a valid phone number">
+    <br><br>
+
+    <!-- Address Field -->
+    <label for="address">Address:</label>
+    <input type="text" id="address" name="address" required placeholder="Enter your address">
+    <br><br>
+
+    <!-- City Field -->
+    <label for="city">City:</label>
+    <input type="text" id="city" name="city" required placeholder="Enter your city">
+    <br><br>
+
+    <!-- Country Field -->
+    <label for="country">Country:</label>
+    <input type="text" id="country" name="country" required placeholder="Enter your country">
+    <br><br>
+
+    <!-- Zip Code Field -->
+    <label for="zipCode">ZIP Code:</label>
+    <input type="text" id="zipCode" name="zipCode" required placeholder="Enter your ZIP code" pattern="^\d{5}(-\d{4})?$" title="Enter a valid ZIP code (e.g., 12345 or 12345-6789)">
+    <br><br>
+
+    <!-- Submit Button -->
+    <button type="submit">Register</button>
+</form>
+<p th:if="${error}" th:text="${error}"></p> <!-- Show error if available -->
+</body>
+</html>

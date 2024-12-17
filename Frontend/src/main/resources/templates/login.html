@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Login</title>
+</head>
+<body>
+<h1>Login</h1>
+<form action="/login" method="POST">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+    <br><br>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+    <br><br>
+    <!-- Error message when authentication fails -->
+    <div th:if="${param.error}">
+        <p style="color: red;">Invalid username or password. Please try again.</p>
+    </div>
+
+    <button type="submit">Login</button>
+</form>
+
+<!-- Displaying other error messages from the controller -->
+<p th:if="${error}" th:text="${error}"></p>
+
+</body>
+</html>
