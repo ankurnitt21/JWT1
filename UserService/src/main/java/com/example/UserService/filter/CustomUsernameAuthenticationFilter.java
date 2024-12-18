@@ -9,7 +9,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,9 +19,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import javax.crypto.SecretKey;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -36,42 +38,37 @@ public class CustomUsernameAuthenticationFilter extends AbstractAuthenticationPr
     }
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
         AuthRequest authRequest = new ObjectMapper().readValue(request.getInputStream(), AuthRequest.class);
-        System.out.println("H");
-        System.out.println(authRequest.getPassword());
-        System.out.println(authRequest.getUsername());
-        System.out.println("I");
+        System.out.println("Attempting authentication for user: " + authRequest.getUsername());
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword());
         return authenticationManager.authenticate(authenticationToken);
     }
 
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response,
-                                            FilterChain chain, Authentication authResult) throws IOException,ServletException {
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+                                            FilterChain chain, Authentication authResult) throws IOException, ServletException {
 
         String existingJwt = request.getHeader(ApplicationConstants.JWT_HEADER);
 
         if (existingJwt == null || existingJwt.isEmpty()) {
             generateAndSetJwt(authResult, response);
         }
+
+        // Redirect to the user details page
+
         response.sendRedirect("http://localhost:8080/getuserdetail/rahul");
     }
 
     @Override
-    protected void unsuccessfulAuthentication(HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response,
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
                                               AuthenticationException failed) throws IOException {
-        System.out.println("Not Validated");
-        // Handle unsuccessful authentication
-
+        System.out.println("Authentication failed for user: " + request.getParameter("username"));
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication Failed");
     }
 
-    // Method to validate the existing JWT
-
-
-    // Method to generate and set a new JWT if it doesn't exist
-    private void generateAndSetJwt(Authentication authentication, jakarta.servlet.http.HttpServletResponse response) {
+    private void generateAndSetJwt(Authentication authentication, HttpServletResponse response) {
         if (authentication != null) {
             String username = authentication.getName(); // Get the username of the authenticated user
 
@@ -91,28 +88,23 @@ public class CustomUsernameAuthenticationFilter extends AbstractAuthenticationPr
                     .expiration(new Date(System.currentTimeMillis() + 30000000)) // Set expiration time (adjust as needed)
                     .signWith(secretKey)
                     .compact();
+            System.out.println("Creating JWT");
 
             // Create a cookie to store the JWT
             Cookie jwtCookie = new Cookie("JWT", jwt);
             jwtCookie.setHttpOnly(true);
             jwtCookie.setSecure(true); // Set to true in production
             jwtCookie.setPath("/");
+            jwtCookie.setMaxAge(60 * 60 * 24); // Set cookie expiration time
 
             // Add the cookie to the response
             response.addCookie(jwtCookie);
 
             System.out.println("JWT: " + jwt);
-            System.out.println("Response Headers: " + response.getHeaderNames());
-
-
-            System.out.println(response);
-            System.out.println(jwt);
+            //System.out.println("Response Headers: " + response.getHeaderNames());
 
             // Set the JWT token in the response header
-            response.setHeader(ApplicationConstants.JWT_HEADER, jwt);
-
-            System.out.println("JWT: " + jwt);
-            System.out.println("Response Headers: " + response.getHeaderNames());
+            //response.setHeader(ApplicationConstants.JWT_HEADER, jwt);
 
             // Now set the authentication in the SecurityContext
             Authentication newAuth = new UsernamePasswordAuthenticationToken(username, null,
@@ -123,3 +115,4 @@ public class CustomUsernameAuthenticationFilter extends AbstractAuthenticationPr
         }
     }
 }
+

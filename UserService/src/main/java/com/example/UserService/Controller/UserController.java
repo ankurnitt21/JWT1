@@ -3,7 +3,12 @@ package com.example.UserService.Controller;
 import com.example.UserService.dto.UserDTO;
 import com.example.UserService.entity.AuthRequest;
 import com.example.UserService.service.UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -28,21 +33,12 @@ public class UserController {
 
     // Handle Register form submission (POST request)
     @PostMapping("/register")
-    public String registerUser(@RequestParam String username, @RequestParam String password,
-                               @RequestParam String email, @RequestParam String firstName,
-                               @RequestParam String lastName, @RequestParam String phoneNumber,
-                               @RequestParam String address, @RequestParam String city,
-                               @RequestParam String country, @RequestParam String zipCode,
-                               Model model) {
-        UserDTO userDTO = new UserDTO(username, password, email, firstName, lastName, phoneNumber,
-                address, city, country, zipCode); // Create DTO from form data
+    public ResponseEntity<String> registerUser(@RequestBody UserDTO userDTO) {
         String response = userService.registerUser(userDTO); // Call service for registration
-
         if (response.equals("success")) {
-            return "redirect:/login";  // Redirect to login page after successful registration
+            return ResponseEntity.ok("Registration successful");
         } else {
-            model.addAttribute("error", "Registration failed: Username already exists");
-            return "register";  // Stay on registration page and show error
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Registration failed");
         }
     }
 
@@ -52,6 +48,7 @@ public class UserController {
         UserDTO userdetail = userService.getUserDetails(username);
         return userdetail;
     }
+
 
 
 

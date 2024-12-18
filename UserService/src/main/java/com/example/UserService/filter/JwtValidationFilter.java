@@ -30,7 +30,7 @@ public class JwtValidationFilter extends OncePerRequestFilter {
         this.environment = environment;
     }
 
-    private String getJwtFromCookies(jakarta.servlet.http.HttpServletRequest request) {
+    private String getJwtFromCookies(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
@@ -39,6 +39,7 @@ public class JwtValidationFilter extends OncePerRequestFilter {
                 }
             }
         }
+        //return response.getHeader("Authorization");
         return null;
     }
 
@@ -75,9 +76,12 @@ public class JwtValidationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, jakarta.servlet.FilterChain chain) throws jakarta.servlet.ServletException, IOException {
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            String jwt = getJwtFromCookies(request);
+            String jwt = getJwtFromCookies(request,response);
             if (jwt != null) {
+                System.out.println("Found JWT Validating");
                 validateJwt(jwt, response);
+            } else {
+                System.out.println("Didn't found JWT");
             }
         }
         chain.doFilter(request, response);
