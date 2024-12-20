@@ -2,6 +2,7 @@ package com.example.UserService.filter;
 
 import javax.crypto.SecretKey;
 
+import com.example.UserService.entity.TokenInfo;
 import jakarta.servlet.http.Cookie;
 
 import javax.servlet.http.HttpServletResponse;
@@ -13,12 +14,15 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.core.env.Environment;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.reactive.function.client.WebClient;
 
 public class JwtValidationFilter extends OncePerRequestFilter {
 
@@ -31,20 +35,25 @@ public class JwtValidationFilter extends OncePerRequestFilter {
     }
 
     private String getJwtFromCookies(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (ApplicationConstants.JWT_COOKIE_NAME.equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
+        String username = (String) request.getSession().getAttribute("username");
+        WebClient webClient = WebClient.create("http://localhost:5555");
+        String finalUsername = username;
+        ResponseEntity<TokenInfo> responseEntity = webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/get/" + finalUsername).build())
+                .retrieve()
+                .toEntity(TokenInfo.class)
+                .block();
+        if (responseEntity != null && responseEntity.getBody() != null) {
+            return responseEntity.getBody().getJwt();
+        } else {
+            return null;
         }
-        //return response.getHeader("Authorization");
-        return null;
     }
 
     private void validateJwt(String jwt, jakarta.servlet.http.HttpServletResponse response) throws IOException {
         try {
+            System.out.println("ss");
+            System.out.println(jwt);
             // Retrieve the secret key from the environment
             String secret = environment.getProperty(ApplicationConstants.JWT_SECRET_KEY, ApplicationConstants.JWT_SECRET_DEFAULT_VALUE);
             SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
@@ -82,6 +91,7 @@ public class JwtValidationFilter extends OncePerRequestFilter {
                 validateJwt(jwt, response);
             } else {
                 System.out.println("Didn't found JWT");
+                response.sendRedirect("http://localhost:8079/login");
             }
         }
         chain.doFilter(request, response);

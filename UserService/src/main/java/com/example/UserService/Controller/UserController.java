@@ -25,11 +25,13 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public void login(@RequestBody AuthRequest authRequest) {
+    public String logins(@RequestBody AuthRequest authRequest) {
         System.out.println("In 8080");
         System.out.println(authRequest.getPassword());
         System.out.println(authRequest.getUsername());
+        return "redirect:http://localhost:8080/getuserdetail/rahul";
     }
+
 
     // Handle Register form submission (POST request)
     @PostMapping("/register")

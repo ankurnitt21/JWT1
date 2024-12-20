@@ -2,6 +2,8 @@ package com.example.Frontend.Controller;
 
 import com.example.Frontend.dto.UserDTO;
 import com.example.Frontend.entity.AuthRequest;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +15,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
-
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 @Controller
 public class UserController {

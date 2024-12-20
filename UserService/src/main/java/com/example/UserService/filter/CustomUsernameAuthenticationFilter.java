@@ -10,8 +10,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,12 +20,17 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import javax.crypto.SecretKey;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.stream.Collectors;
 
 public class CustomUsernameAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
@@ -51,14 +57,11 @@ public class CustomUsernameAuthenticationFilter extends AbstractAuthenticationPr
                                             FilterChain chain, Authentication authResult) throws IOException, ServletException {
 
         String existingJwt = request.getHeader(ApplicationConstants.JWT_HEADER);
-
         if (existingJwt == null || existingJwt.isEmpty()) {
-            generateAndSetJwt(authResult, response);
+            generateAndSetJwt(authResult, response,request);
         }
 
-        // Redirect to the user details page
-
-        response.sendRedirect("http://localhost:8080/getuserdetail/rahul");
+        response.sendRedirect("http://localhost:8080/getuserdetail/ankur");
     }
 
     @Override
@@ -68,9 +71,10 @@ public class CustomUsernameAuthenticationFilter extends AbstractAuthenticationPr
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication Failed");
     }
 
-    private void generateAndSetJwt(Authentication authentication, HttpServletResponse response) {
+    private void generateAndSetJwt(Authentication authentication, HttpServletResponse response, HttpServletRequest request) {
         if (authentication != null) {
             String username = authentication.getName(); // Get the username of the authenticated user
+            request.getSession().setAttribute("username", username);
 
             // Retrieve the JWT secret key from the environment or properties
             String secret = environment.getProperty(ApplicationConstants.JWT_SECRET_KEY, ApplicationConstants.JWT_SECRET_DEFAULT_VALUE);
@@ -80,7 +84,7 @@ public class CustomUsernameAuthenticationFilter extends AbstractAuthenticationPr
 
             // Generate the JWT token
             String jwt = Jwts.builder()
-                    .issuer("Eazy Bank")
+                    .issuer("Testing")
                     .subject("JWT Token")
                     .claim("username", username)
                     .claim("authorities", "ROLE_USER,ROLE_ADMIN") // Or retrieve actual authorities dynamically
@@ -90,21 +94,17 @@ public class CustomUsernameAuthenticationFilter extends AbstractAuthenticationPr
                     .compact();
             System.out.println("Creating JWT");
 
-            // Create a cookie to store the JWT
-            Cookie jwtCookie = new Cookie("JWT", jwt);
-            jwtCookie.setHttpOnly(true);
-            jwtCookie.setSecure(true); // Set to true in production
-            jwtCookie.setPath("/");
-            jwtCookie.setMaxAge(60 * 60 * 24); // Set cookie expiration time
-
-            // Add the cookie to the response
-            response.addCookie(jwtCookie);
-
             System.out.println("JWT: " + jwt);
-            //System.out.println("Response Headers: " + response.getHeaderNames());
 
-            // Set the JWT token in the response header
-            //response.setHeader(ApplicationConstants.JWT_HEADER, jwt);
+            WebClient webClient = WebClient.create("http://localhost:5555");
+            webClient.post()
+                    .uri(uriBuilder -> uriBuilder.path("/store")
+                            .queryParam("token", jwt)
+                            .queryParam("username", username)
+                            .build())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .exchangeToMono(clientResponse -> clientResponse.toBodilessEntity())
+                    .block();
 
             // Now set the authentication in the SecurityContext
             Authentication newAuth = new UsernamePasswordAuthenticationToken(username, null,
@@ -115,4 +115,3 @@ public class CustomUsernameAuthenticationFilter extends AbstractAuthenticationPr
         }
     }
 }
-
