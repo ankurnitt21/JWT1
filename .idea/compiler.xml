@@ -6,9 +6,10 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="redisService" />
         <module name="Frontend" />
         <module name="UserService" />
-        <module name="redisService" />
+        <module name="productService" />
       </profile>
     </annotationProcessing>
   </component>
@@ -16,6 +17,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="Frontend" options="-parameters" />
       <module name="UserService" options="-parameters" />
+      <module name="productService" options="-parameters" />
       <module name="redisService" options="-parameters" />
     </option>
   </component>

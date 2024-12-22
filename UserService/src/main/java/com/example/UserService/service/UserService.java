@@ -6,8 +6,8 @@ import com.example.UserService.entity.UserRole;
 import com.example.UserService.helper.PasswordHelper;
 import com.example.UserService.repository.UserRepository;
 import com.example.UserService.repository.UserRoleRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
@@ -56,6 +56,24 @@ public class UserService {
         userRoleRepository.save(user_role);
         userRepository.save(user);
         return "success";  // Successful registration
+    }
+
+    @Transactional
+    public String deleteUser(String username) {
+        if (userRepository.existsByUsername(username)) {
+            System.out.println("Deleting " + username);
+            userRepository.deleteByUsername(username);
+            System.out.println("Deleted " + username);
+            return "success";
+        } else {
+            System.out.println("Not able to delete " + username);
+            return "failure";
+        }
+    }
+
+    public String getRole(String username){
+        User user = userRepository.findByUsername(username);
+        return userRoleRepository.findByUserId(user.getUser_id()).getRole();
     }
 
     // Login user method now returns success/failure

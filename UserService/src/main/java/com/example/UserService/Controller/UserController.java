@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -49,6 +50,17 @@ public class UserController {
     public UserDTO userdetail(@PathVariable String username, Model model) {
         UserDTO userdetail = userService.getUserDetails(username);
         return userdetail;
+    }
+
+    @GetMapping("/deleteuser/{username}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> deleteUser(@PathVariable String username) {
+        try {
+            String response = userService.deleteUser(username);
+            return ResponseEntity.ok("User " + username + " deleted successfully.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User " + username + " not found.");
+        }
     }
 
 

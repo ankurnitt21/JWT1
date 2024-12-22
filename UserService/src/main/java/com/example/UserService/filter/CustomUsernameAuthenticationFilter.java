@@ -1,7 +1,9 @@
 package com.example.UserService.filter;
 
 import com.example.UserService.constants.ApplicationConstants;
+import com.example.UserService.dto.UserDTO;
 import com.example.UserService.entity.AuthRequest;
+import com.example.UserService.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -13,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -34,11 +37,13 @@ import java.util.stream.Collectors;
 
 public class CustomUsernameAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
+    private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final Environment environment;
 
-    public CustomUsernameAuthenticationFilter(String defaultFilterProcessesUrl, AuthenticationManager authenticationManager, Environment environment) {
+    public CustomUsernameAuthenticationFilter(String defaultFilterProcessesUrl, UserService userService, AuthenticationManager authenticationManager, Environment environment) {
         super(defaultFilterProcessesUrl);
+        this.userService = userService;
         this.authenticationManager = authenticationManager;
         this.environment = environment;
     }
@@ -61,6 +66,7 @@ public class CustomUsernameAuthenticationFilter extends AbstractAuthenticationPr
             generateAndSetJwt(authResult, response,request);
         }
 
+
         response.sendRedirect("http://localhost:8080/getuserdetail/ankur");
     }
 
@@ -74,22 +80,23 @@ public class CustomUsernameAuthenticationFilter extends AbstractAuthenticationPr
     private void generateAndSetJwt(Authentication authentication, HttpServletResponse response, HttpServletRequest request) {
         if (authentication != null) {
             String username = authentication.getName(); // Get the username of the authenticated user
-            request.getSession().setAttribute("username", username);
+           // request.getSession().setAttribute("username", username);
 
             // Retrieve the JWT secret key from the environment or properties
             String secret = environment.getProperty(ApplicationConstants.JWT_SECRET_KEY, ApplicationConstants.JWT_SECRET_DEFAULT_VALUE);
 
             // Generate the secret key using HMAC-SHA algorithm
             SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+            String role = userService.getRole(username);
 
             // Generate the JWT token
             String jwt = Jwts.builder()
                     .issuer("Testing")
                     .subject("JWT Token")
                     .claim("username", username)
-                    .claim("authorities", "ROLE_USER,ROLE_ADMIN") // Or retrieve actual authorities dynamically
+                    .claim("authorities", "ROLE_"+role) // Or retrieve actual authorities dynamically
                     .issuedAt(new Date())
-                    .expiration(new Date(System.currentTimeMillis() + 30000000)) // Set expiration time (adjust as needed)
+                    .expiration(new Date(System.currentTimeMillis() + 3000000)) // Set expiration time (adjust as needed)
                     .signWith(secretKey)
                     .compact();
             System.out.println("Creating JWT");
@@ -97,18 +104,28 @@ public class CustomUsernameAuthenticationFilter extends AbstractAuthenticationPr
             System.out.println("JWT: " + jwt);
 
             WebClient webClient = WebClient.create("http://localhost:5555");
-            webClient.post()
+            ResponseEntity<String> responseEntity =webClient.post()
                     .uri(uriBuilder -> uriBuilder.path("/store")
                             .queryParam("token", jwt)
                             .queryParam("username", username)
                             .build())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .exchangeToMono(clientResponse -> clientResponse.toBodilessEntity())
+                    .retrieve()
+                    .toEntity(String.class)
                     .block();
+
+            System.out.println("Returned from redis");
+            System.out.println(responseEntity);
+            System.out.println(responseEntity.getBody());
+
+            Cookie sessioncookie = new Cookie("session", responseEntity.getBody());
+            sessioncookie.setPath("/");
+            //usernameCookie.setHttpOnly(true); // Optional: Makes the cookie inaccessible to JavaScript
+            //usernameCookie.setMaxAge(60 * 60); // Optional: Sets the cookie to expire in 1 hour
+            response.addCookie(sessioncookie);
 
             // Now set the authentication in the SecurityContext
             Authentication newAuth = new UsernamePasswordAuthenticationToken(username, null,
-                    AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER,ROLE_ADMIN"));
+                    AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_"+role));
             SecurityContextHolder.getContext().setAuthentication(newAuth);
         } else {
             System.out.println("User not authenticated");

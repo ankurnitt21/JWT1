@@ -35,11 +35,18 @@ public class JwtValidationFilter extends OncePerRequestFilter {
     }
 
     private String getJwtFromCookies(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) {
-        String username = (String) request.getSession().getAttribute("username");
+        String session= "";
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("session".equals(cookie.getName())) {
+                     session = cookie.getValue();}}}
+       // String username = (String) request.getSession().getAttribute("username");
+
         WebClient webClient = WebClient.create("http://localhost:5555");
-        String finalUsername = username;
+        String finalsession = session;
         ResponseEntity<TokenInfo> responseEntity = webClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/get/" + finalUsername).build())
+                .uri(uriBuilder -> uriBuilder.path("/get/" + finalsession).build())
                 .retrieve()
                 .toEntity(TokenInfo.class)
                 .block();
