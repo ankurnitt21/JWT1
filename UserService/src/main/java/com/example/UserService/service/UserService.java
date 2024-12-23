@@ -62,6 +62,7 @@ public class UserService {
     public String deleteUser(String username) {
         if (userRepository.existsByUsername(username)) {
             System.out.println("Deleting " + username);
+            userRoleRepository.deleteByUserId(userRepository.findByUsername(username).getUser_id());
             userRepository.deleteByUsername(username);
             System.out.println("Deleted " + username);
             return "success";

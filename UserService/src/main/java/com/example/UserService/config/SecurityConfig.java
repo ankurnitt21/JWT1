@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,"/getuserdetail/**").authenticated()
                         .requestMatchers("/deleteuser/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST,"/login").permitAll()
+                        .requestMatchers("/register").permitAll()
                         .anyRequest().permitAll())
                 .logout(logout -> logout
                         .logoutUrl("/logout")

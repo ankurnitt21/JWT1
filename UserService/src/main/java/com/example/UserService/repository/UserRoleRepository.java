@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
     UserRole findByUserId(Long userId); // Updated method name to match field name in UserRole
+
+    void deleteByUserId(Long userId);
 }

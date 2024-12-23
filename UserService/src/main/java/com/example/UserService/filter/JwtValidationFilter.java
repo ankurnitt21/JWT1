@@ -91,6 +91,10 @@ public class JwtValidationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, jakarta.servlet.FilterChain chain) throws jakarta.servlet.ServletException, IOException {
+        if ("/register".equals(request.getRequestURI())) {
+            chain.doFilter(request, response);
+            return;
+        }
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
             String jwt = getJwtFromCookies(request,response);
             if (jwt != null) {
