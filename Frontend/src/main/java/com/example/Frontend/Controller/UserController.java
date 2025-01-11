@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 @Controller
+@RequestMapping("/users")
 public class UserController {
 
     private final WebClient webClient;
@@ -37,11 +38,11 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestParam("username") String username,
                                    @RequestParam("password") String password,HttpServletResponse response) {
-
-        WebClient webClient = WebClient.create("http://localhost:8080");
+        System.out.println("Here 41");
+        WebClient webClient = WebClient.create("http://localhost:8078");
         AuthRequest authRequest = new AuthRequest(username, password);
         return webClient.post()
-                .uri("/login")
+                .uri("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(authRequest))
                 .exchangeToMono(clientResponse -> {

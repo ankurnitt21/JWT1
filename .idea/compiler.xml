@@ -7,18 +7,22 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="redisService" />
-        <module name="NotificationService" />
         <module name="Frontend" />
         <module name="UserService" />
-        <module name="productService" />
         <module name="orderService" />
+        <module name="NotificationService" />
+        <module name="Api-Gateway" />
+        <module name="productService" />
+        <module name="Service-Registry" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="Api-Gateway" options="-parameters" />
       <module name="Frontend" options="-parameters" />
       <module name="NotificationService" options="-parameters" />
+      <module name="Service-Registry" options="-parameters" />
       <module name="UserService" options="-parameters" />
       <module name="orderService" options="-parameters" />
       <module name="productService" options="-parameters" />

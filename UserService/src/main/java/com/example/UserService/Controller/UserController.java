@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @Controller
+@RequestMapping("/auth")
 public class UserController {
 
     private final UserService userService;
@@ -30,7 +31,7 @@ public class UserController {
         System.out.println("In 8080");
         System.out.println(authRequest.getPassword());
         System.out.println(authRequest.getUsername());
-        return "redirect:http://localhost:8080/getuserdetail/rahul";
+        return userService.authenticateUser(authRequest.getUsername(), authRequest.getPassword());
     }
 
 

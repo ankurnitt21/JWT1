@@ -66,8 +66,8 @@ public class CustomUsernameAuthenticationFilter extends AbstractAuthenticationPr
             generateAndSetJwt(authResult, response,request);
         }
 
-
-        response.sendRedirect("http://localhost:8080/getuserdetail/ankur");
+        System.out.println("here 69");
+        response.sendRedirect( "http://localhost:8078/products");
     }
 
     @Override

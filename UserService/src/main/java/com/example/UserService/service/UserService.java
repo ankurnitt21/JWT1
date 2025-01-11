@@ -25,11 +25,10 @@ public class UserService {
         UserDTO userDTO = getUserDetails(username);
 
         if(passwordHelper.matches(password,userDTO.getPassword())){
-            return "redirect:http://localhost:8081/api/orders/products";
+            return "redirect:lb://PRODUCTSERVICE/products";
         } else {
             return "/login";
         }
-
     }
 
     // Register user method now returns success/failure

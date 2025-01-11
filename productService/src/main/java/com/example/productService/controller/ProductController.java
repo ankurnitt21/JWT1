@@ -1,12 +1,18 @@
 package com.example.productService.controller;
 
 import com.example.productService.dto.ProductDTO;
+import com.example.productService.entity.Order;
 import com.example.productService.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -58,5 +64,23 @@ public class ProductController {
     public String deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return "redirect:/products";
+    }
+
+    @PostMapping("/order_placed")
+    @ResponseBody
+    public String orderPlaced(@RequestParam String userId,
+                              @RequestParam List<String> productIds,
+                              @RequestParam double totalAmount,
+                              @RequestParam String status,
+                              @RequestParam LocalDateTime createdAt) {
+        Order orderDTO = new Order(userId, productIds, totalAmount, status, createdAt);
+        WebClient webClient = WebClient.create("http://localhost:8082");
+        ResponseEntity<String> responseEntity = webClient.post()
+                .uri("/api/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(orderDTO))
+                .exchangeToMono(clientResponse -> clientResponse.toEntity(String.class))
+                .block();
+        return "order Placed";
     }
 }

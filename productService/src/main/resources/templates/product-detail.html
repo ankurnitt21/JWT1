@@ -10,5 +10,14 @@
 <p>Description: <span th:text="${product.description}">Product Description</span></p>
 <p>Price: <span th:text="${product.price}">100.0</span></p>
 <a th:href="@{/products}">Back to List</a>
+
+<form th:action="@{/products/order_placed}" method="post">
+    <input type="hidden" name="userId" value="arana8" />
+    <input type="hidden" name="productIds" th:value="${product.id}" />
+    <input type="hidden" name="totalAmount" th:value="${product.price}" />
+    <input type="hidden" name="status" value="Completed" />
+    <input type="hidden" name="createdAt" value="2024-12-29T13:45:33" />
+    <button type="submit">Place Order</button>
+</form>
 </body>
 </html>

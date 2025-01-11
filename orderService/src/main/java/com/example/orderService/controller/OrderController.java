@@ -27,8 +27,10 @@ public class OrderController {
     }
 
     @PostMapping
+    @ResponseBody
     public Order createOrder(@RequestBody Order order) {
         System.out.println("Calling service of order");
+        System.out.println(order);
         return orderService.createOrder(order);
     }
 
