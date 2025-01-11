@@ -38,6 +38,7 @@ public class UserController {
     // Handle Register form submission (POST request)
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody UserDTO userDTO) {
+        System.out.println("Coming here");
         String response = userService.registerUser(userDTO); // Call service for registration
         if (response.equals("success")) {
             return ResponseEntity.ok("Registration successful");

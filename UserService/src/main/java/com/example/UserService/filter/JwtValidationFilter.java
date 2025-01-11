@@ -45,6 +45,7 @@ public class JwtValidationFilter extends OncePerRequestFilter {
 
         WebClient webClient = WebClient.create("http://localhost:5555");
         String finalsession = session;
+        System.out.println("Session = "+ finalsession);
         ResponseEntity<TokenInfo> responseEntity = webClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/get/" + finalsession).build())
                 .retrieve()
@@ -91,10 +92,16 @@ public class JwtValidationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, jakarta.servlet.FilterChain chain) throws jakarta.servlet.ServletException, IOException {
-        if ("/register".equals(request.getRequestURI())) {
+        String path = request.getRequestURI();
+        System.out.println("Path = "+path);
+        if ("/auth/register".equals(request.getRequestURI())) {
             chain.doFilter(request, response);
             return;
         }
+       /* if ("/auth/login".equals(request.getRequestURI())) {
+            chain.doFilter(request, response);
+            return;
+        }*/
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
             String jwt = getJwtFromCookies(request,response);
             if (jwt != null) {

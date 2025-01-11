@@ -43,10 +43,10 @@ public class SecurityConfig {
         http.sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers(HttpMethod.GET,"/getuserdetail/**").authenticated()
-                        .requestMatchers("/deleteuser/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST,"/login").permitAll()
-                        .requestMatchers("/register").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/auth/getuserdetail/**").authenticated()
+                        .requestMatchers("/auth/deleteuser/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST,"/auth/login").permitAll()
+                        .requestMatchers("/auth/register").permitAll()
                         .anyRequest().permitAll())
                 .logout(logout -> logout
                         .logoutUrl("/logout")
@@ -71,7 +71,7 @@ public class SecurityConfig {
 
                             response.setStatus(HttpServletResponse.SC_OK);
                         }));
-        http.addFilterBefore(new CustomUsernameAuthenticationFilter("/login", userService, authenticationManager, environment), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new CustomUsernameAuthenticationFilter("/auth/login", userService, authenticationManager, environment), UsernamePasswordAuthenticationFilter.class);
         http.addFilterAfter(new JwtValidationFilter(userDetailsService, environment), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

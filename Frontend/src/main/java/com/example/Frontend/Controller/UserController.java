@@ -45,17 +45,15 @@ public class UserController {
                 .uri("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(authRequest))
-                .exchangeToMono(clientResponse -> {
-                    return clientResponse.toBodilessEntity();
-                })
+                .exchangeToMono(clientResponse -> clientResponse.toBodilessEntity())
                 .block();
     }
 
     @GetMapping("/logout")
     public void logout(HttpServletRequest request, HttpServletResponse response) {
-        WebClient webClient = WebClient.create("http://localhost:8080");
+        WebClient webClient = WebClient.create("http://localhost:8078");
         ResponseEntity<String> responseEntity = webClient.post()
-                .uri("/logout")
+                .uri("/auth/logout")
                 .contentType(MediaType.APPLICATION_JSON)
                 .exchangeToMono(clientResponse -> clientResponse.toEntity(String.class))
                 .block();
@@ -93,11 +91,11 @@ public class UserController {
                                @RequestParam String address, @RequestParam String city,
                                @RequestParam String country, @RequestParam String zipCode,
                                HttpServletResponse response) throws IOException {
-
-        WebClient webClient = WebClient.create("http://localhost:8080");
+        System.out.println("Coming here");
+        WebClient webClient = WebClient.create("http://localhost:8078");
         UserDTO userDTO = new UserDTO(username, password,email,firstName,lastName,phoneNumber,address,city,country,zipCode);
         ResponseEntity<String> responseEntity = webClient.post()
-                .uri("/register")
+                .uri("/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(userDTO))
                 .exchangeToMono(clientResponse -> clientResponse.toEntity(String.class))
@@ -109,10 +107,11 @@ public class UserController {
             System.out.println("Response Body: " + responseEntity.getBody());
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
                 try {
-                    response.sendRedirect("/login"); // Redirect to the desired page
+                    response.sendRedirect("http://localhost:8078/users/login"); // Redirect to the desired page
                 } catch (IOException e) {
                     e.printStackTrace();
-                    response.sendRedirect("/register");
+                    System.out.println("in catch");
+                    response.sendRedirect("http://localhost:8078/users/register");
                 }
             }
         } else {

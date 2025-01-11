@@ -66,15 +66,15 @@ public class ProductController {
         return "redirect:/products";
     }
 
-    @PostMapping("/order_placed")
+    @GetMapping("/order_placed")
     @ResponseBody
-    public String orderPlaced(@RequestParam String userId,
-                              @RequestParam List<String> productIds,
-                              @RequestParam double totalAmount,
-                              @RequestParam String status,
-                              @RequestParam LocalDateTime createdAt) {
+    public String orderPlaced(@RequestParam("userId") String userId,
+                              @RequestParam("productIds") List<String> productIds,
+                              @RequestParam("totalAmount") double totalAmount,
+                              @RequestParam("status") String status,
+                              @RequestParam("createdAt") LocalDateTime createdAt) {
         Order orderDTO = new Order(userId, productIds, totalAmount, status, createdAt);
-        WebClient webClient = WebClient.create("http://localhost:8082");
+        WebClient webClient = WebClient.create("http://localhost:8078");
         ResponseEntity<String> responseEntity = webClient.post()
                 .uri("/api/orders")
                 .contentType(MediaType.APPLICATION_JSON)
