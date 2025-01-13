@@ -66,7 +66,7 @@ public class ProductController {
         return "redirect:/products";
     }
 
-    @GetMapping("/order_placed")
+    @PostMapping("/order_placed")
     @ResponseBody
     public String orderPlaced(@RequestParam("userId") String userId,
                               @RequestParam("productIds") List<String> productIds,

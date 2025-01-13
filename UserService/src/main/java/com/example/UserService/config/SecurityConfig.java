@@ -72,8 +72,13 @@ public class SecurityConfig {
                             response.setStatus(HttpServletResponse.SC_OK);
                         }));
         http.addFilterBefore(new CustomUsernameAuthenticationFilter("/auth/login", userService, authenticationManager, environment), UsernamePasswordAuthenticationFilter.class);
-        http.addFilterAfter(new JwtValidationFilter(userDetailsService, environment), UsernamePasswordAuthenticationFilter.class);
+        //http.addFilterAfter(new JwtValidationFilter(userDetailsService, environment), UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    @Bean
+    public WebClient webClient() {
+        return WebClient.builder().build();
     }
 
     @Bean

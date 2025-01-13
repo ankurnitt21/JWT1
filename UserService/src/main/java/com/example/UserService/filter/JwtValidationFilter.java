@@ -109,7 +109,7 @@ public class JwtValidationFilter extends OncePerRequestFilter {
                 validateJwt(jwt, response);
             } else {
                 System.out.println("Didn't found JWT");
-                response.sendRedirect("http://localhost:8079/login");
+                response.sendRedirect("http://localhost:8078/users/login");
             }
         }
         chain.doFilter(request, response);
