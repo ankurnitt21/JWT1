@@ -1,0 +1,145 @@
+To use OIDC with SSO
+use okta
+https://dzone.com/articles/integrate-sso-with-spring-boot-and-oauth-20
+
+Flow for Accessing Protected URLs
+User Accesses a Protected URL:
+The user types a URL in the browser, such as /api/orders, without being logged in.
+Request Interception by API Gateway:
+The API Gateway intercepts the request and checks the URL path.
+JWT Validation:
+The API Gateway invokes the JwtValidationFilter to validate the JWT token.
+Since the URL is not /login or /register, the filter checks for the presence of a JWT token.
+Token Validation:
+If the JWT token is missing or invalid, the filter responds with a 401 Unauthorized status.
+The client (e.g., browser) detects the 401 Unauthorized response and redirects the user to the SSO login page.
+SSO Login:
+The user is redirected to the SSO login page provided by the Identity Provider (IdP).
+The user logs in using their credentials.
+Upon successful login, the IdP issues a JWT token and redirects the user back to the original URL.
+Accessing the Protected URL Again:
+The client sends the request to the protected URL again, this time including the valid JWT token.
+The API Gateway validates the token and routes the request to the appropriate microservice.
+The microservice processes the request and returns the response to the API Gateway.
+The API Gateway forwards the response to the client.
+
+
+
+------------------------------------------------------------------------------------------------------------------------
+CONFIG SERVER
+we can use config server as well
+
+git repo structure
+
+config-repo1/
+  myapp/
+    default/
+      application.properties
+    dev/
+      application.properties
+config-repo2/
+  myapp/
+    default/
+      application.properties
+    prod/
+      application.properties
+local-config/
+  myapp/
+    default/
+      application.properties
+    test/
+      application.properties
+
+------------------------------------------------------------------
+ application.properties for Config Server:
+ server.port=8888
+
+ spring.profiles.active=composite
+
+ # First Git repository
+ spring.cloud.config.server.composite[0].type=git
+ spring.cloud.config.server.composite[0].uri=https://github.com/your-repo/config-repo1
+ spring.cloud.config.server.composite[0].search-paths={application}/{profile}
+ spring.cloud.config.server.composite[0].username=your-username
+ spring.cloud.config.server.composite[0].password=your-password
+
+ # Second Git repository
+ spring.cloud.config.server.composite[1].type=git
+ spring.cloud.config.server.composite[1].uri=https://github.com/your-repo/config-repo2
+ spring.cloud.config.server.composite[1].search-paths={application}/{profile}
+ spring.cloud.config.server.composite[1].username=your-username
+ spring.cloud.config.server.composite[1].password=your-password
+
+ # Local file system repository
+ spring.cloud.config.server.composite[2].type=native
+ spring.cloud.config.server.composite[2].search-locations=file:///path/to/local/config
+
+--------------------------------------------------------------------------------------------
+
+ API Gateway
+ application.properties for API Gateway:
+ spring.application.name=APIGATEWAY
+ spring.cloud.config.uri=http://localhost:8888
+ spring.cloud.config.name=APIGATEWAY
+ spring.cloud.config.profile=default
+
+ eureka.client.service-url.defaultZone=http://localhost:8761/eureka/
+ eureka.client.register-with-eureka=true
+ eureka.client.fetch-registry=true
+
+ server.port=8078
+
+ logging.level.org.springframework.cloud.gateway=DEBUG
+
+ spring.cloud.gateway.discovery.locator.enabled=true
+ spring.cloud.gateway.discovery.locator.lower-case-service-id=true
+ spring.main.web-application-type=reactive
+ spring.main.allow-bean-definition-overriding=true
+
+-----------------------------------------------------------------------------------
+ Frontend Service
+ application.properties for Frontend Service:
+ spring.application.name=FRONTENDSERVICE
+ spring.cloud.config.uri=http://localhost:8888
+ spring.cloud.config.name=FRONTENDSERVICE
+ spring.cloud.config.profile=default
+
+ eureka.client.service-url.defaultZone=http://localhost:8761/eureka/
+ eureka.client.register-with-eureka=true
+ eureka.client.fetch-registry=true
+
+ server.port=8079
+
+ logging.level.root=DEBUG
+
+ server.servlet.session.cookie.name=NONE
+
+------------------------------------------------------------------------------------
+
+ Example application.properties in config-repo1:
+ # Common properties for all profiles
+ eureka.instance.prefer-ip-address=true
+ eureka.instance.hostname=localhost
+
+ spring.cloud.gateway.routes[0].id=FRONTENDSERVICE
+ spring.cloud.gateway.routes[0].uri=lb://FRONTENDSERVICE
+ spring.cloud.gateway.routes[0].predicates[0]=Path=/users/**
+
+ spring.cloud.gateway.routes[1].id=USERSERVICE
+ spring.cloud.gateway.routes[1].uri=lb://USERSERVICE
+ spring.cloud.gateway.routes[1].predicates[0]=Path=/auth/**
+
+ spring.cloud.gateway.routes[2].id=PRODUCTSERVICE
+ spring.cloud.gateway.routes[2].uri=lb://PRODUCTSERVICE
+ spring.cloud.gateway.routes[2].predicates[0]=Path=/products/**
+
+ spring.cloud.gateway.routes[3].id=ORDERSERVICE
+ spring.cloud.gateway.routes[3].uri=lb://ORDERSERVICE
+ spring.cloud.gateway.routes[3].predicates[0]=Path=/api/orders/**
+
+--------------------------------------------------------------------------------------
+
+
+ Example application.properties in config-repo2:
+ # Common properties for all profiles
+ eureka.instance.hostname=localhost
